@@ -175,4 +175,4 @@ Yes. Add the bot to the group or channel, make sure it has permission to post, a
 
 ## License
 
-MIT License. Free for personal and commercial use.
+MIT License (c) 2026 [Ahmet Emir Şimşek](https://github.com/SS2Genji)
