@@ -82,7 +82,7 @@ Portföy Büyüklüğü: 39,00 Milyar ₺
 | Secret Name | Value | Required | Description |
 | :--- | :--- | :--- | :--- |
 | `TELEGRAM_BOT_TOKEN` | `...` | Yes | Token from `@BotFather` |
-| `TELEGRAM_CHAT_ID` | `...` | Yes | Numerical ID from `@userinfobot` |
+| `TELEGRAM_CHAT_ID` | `...` | Yes | Numerical ID from `@userinfobot`. Supports comma-separated IDs (`ID1,ID2`) or group/channel IDs. |
 
 4. Optional repository variables can be added under the **Variables** tab:
 
@@ -137,7 +137,7 @@ on:
 | :--- | :--- | :--- | :--- |
 | `FUND_CODE` | `KTV` | String (e.g. `KTV`, `TI1,ZKP`) | Target TEFAS fund code. Supports comma-separated lists. |
 | `TELEGRAM_BOT_TOKEN` | None | String | Bot token from Telegram BotFather. |
-| `TELEGRAM_CHAT_ID` | None | String / Int | Personal or channel chat ID. |
+| `TELEGRAM_CHAT_ID` | None | String / Int | Personal, group, or comma-separated chat IDs (`ID1,ID2`). |
 | `ALERT_NEGATIVE_ONLY` | `false` | `true` / `false` | When true, skips messages on positive or neutral days. |
 | `DRY_RUN` | `false` | `true` / `false` | Prints output to stdout without calling the Telegram API. |
 

@@ -237,7 +237,8 @@ def run_tracker() -> int:
     """Main execution orchestrator."""
     fund_codes_env = os.getenv("FUND_CODE", "KTV")
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    chat_ids_env = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    chat_ids = [c.strip() for c in chat_ids_env.split(",") if c.strip()]
     alert_negative_only = (
         os.getenv("ALERT_NEGATIVE_ONLY", "false").lower() in ("true", "1", "yes")
     )
@@ -248,15 +249,15 @@ def run_tracker() -> int:
         print("Error: No fund codes specified.", file=sys.stderr)
         return 1
 
-    if not dry_run and (not bot_token or not chat_id):
+    if not dry_run and (not bot_token or not chat_ids):
         print(
-            "Error: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set (or set DRY_RUN=true).",
+            "Error: TELEGRAM_BOT_TOKEN and at least one TELEGRAM_CHAT_ID must be set (or set DRY_RUN=true).",
             file=sys.stderr,
         )
         return 1
 
     total_funds = len(funds)
-    print(f"Tracking {total_funds} fund(s): {', '.join(funds)} (DryRun={dry_run})")
+    print(f"Tracking {total_funds} fund(s): {', '.join(funds)} across {len(chat_ids)} recipient(s) (DryRun={dry_run})")
 
     has_error = False
 
@@ -291,12 +292,13 @@ def run_tracker() -> int:
                 print(msg)
                 print("[DRY RUN - End Preview]\n")
             else:
-                success = send_telegram_message(bot_token, chat_id, msg)
-                if success:
-                    print(f"Successfully delivered Telegram alert for {code}.")
-                else:
-                    print(f"Failed to deliver Telegram alert for {code}.", file=sys.stderr)
-                    has_error = True
+                for cid in chat_ids:
+                    success = send_telegram_message(bot_token, cid, msg)
+                    if success:
+                        print(f"Successfully delivered Telegram alert for {code} to {cid}.")
+                    else:
+                        print(f"Failed to deliver Telegram alert for {code} to {cid}.", file=sys.stderr)
+                        has_error = True
 
         except Exception as e:
             print(f"Error processing fund '{code}': {e}", file=sys.stderr)

@@ -124,6 +124,25 @@ class TestTefasAlert(unittest.TestCase):
         cron, h, m = tsi_to_utc_cron("18:30")
         self.assertEqual(cron, "30 15 * * 1-5")
 
+    @patch("tefas_alert.send_telegram_message")
+    @patch("tefas_alert.fetch_fund_history")
+    def test_multiple_recipients_dispatch(self, mock_fetch, mock_send):
+        from tefas_alert import run_tracker
+        import os
+
+        mock_fetch.return_value = self.mock_positive_records
+        mock_send.return_value = True
+
+        with patch.dict(os.environ, {
+            "FUND_CODE": "KTV",
+            "TELEGRAM_BOT_TOKEN": "mock_token",
+            "TELEGRAM_CHAT_ID": "111111,222222,333333",
+            "DRY_RUN": "false"
+        }):
+            exit_code = run_tracker()
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(mock_send.call_count, 3)
+
 
 if __name__ == "__main__":
     unittest.main()
