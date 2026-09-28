@@ -1,32 +1,32 @@
 # tefas-telegram-alert
 
-Automated daily TEFAS investment fund tracker and Telegram alert engine. Built with pure Python 3 standard library, requiring zero third-party dependencies, and running completely free in the cloud via GitHub Actions.
+Automated TEFAS investment fund tracker and Telegram notifier. Runs on Python 3 standard library with no external dependencies, scheduled through GitHub Actions.
 
 ---
 
 ## Overview
 
-Tracking Turkish Electronic Fund Trading Platform (TEFAS) funds manually every morning is tedious. `tefas-telegram-alert` connects directly to TEFAS's official JSON API, calculates day-over-day price differences and percentage returns, and delivers clean, formatted Telegram alerts directly to your phone every business morning at 09:15 TSI (06:15 UTC).
+`tefas-telegram-alert` queries the TEFAS JSON API, calculates day-over-day price differences and percentage returns, and sends a Telegram message every business morning. By default, it runs at 10:00 Istanbul time (07:00 UTC), coinciding with the Borsa Istanbul market open.
 
-When daily returns are positive, it sends a green status notification. When returns drop into negative territory, it fires an immediate high-priority warning alert (`🚨 DİKKAT`).
+Positive returns are marked with `🟢`, negative returns with `🔴`, and sessions with unchanged prices with `⚪`.
 
 ---
 
 ## Features
 
-- **Zero External Dependencies:** Built strictly using Python 3 standard library (`urllib.request`, `json`, `datetime`, `os`). No `pip install`, no broken dependency trees, no supply-chain vulnerabilities.
-- **Direct Official TEFAS API:** Queries `https://www.tefas.gov.tr/api/funds/fonGnlBlgSiraliGetir` natively. No fragile HTML parsing or headless browser scraping.
-- **Serverless & 100% Free:** Runs on GitHub Actions scheduled cron. Requires no 24/7 server, VPS, or always-on home computer.
-- **Smart Return Classification:** Automatically distinguishes gains (`🟢`), losses (`🚨`), and neutral market sessions (`⚪`).
-- **Multi-Fund Monitoring:** Track a single fund (`KTV`) or multiple funds concurrently (`KTV,TI1,MAC,ZKP`).
-- **Filter Mode:** Optional `ALERT_NEGATIVE_ONLY` toggle to receive alerts exclusively when returns are negative.
-- **Local Dry-Run Support:** Test output locally without sending real Telegram messages (`DRY_RUN=true`).
+- **Standard library only:** Uses Python's native `urllib.request`, `json`, `datetime`, and `os`. No `pip install` required.
+- **Direct JSON API:** Queries `tefas.gov.tr/api/funds/fonGnlBlgSiraliGetir` directly instead of scraping HTML pages.
+- **Serverless:** Runs on GitHub Actions scheduled cron. Does not require a personal server or computer left running.
+- **Return tracking:** Distinguishes gains (`🟢`), losses (`🔴`), and neutral sessions (`⚪`).
+- **Multi-fund support:** Track one fund (`KTV`) or multiple funds in one run (`KTV,TI1,MAC`).
+- **Negative-only filter:** Optional `ALERT_NEGATIVE_ONLY` setting to receive messages only when a fund loses value.
+- **Local dry run:** Test output and formatting locally with `DRY_RUN=true`.
 
 ---
 
-## Telegram Message Showcase
+## Message format
 
-### Positive Session (Gain)
+### Positive session
 ```text
 🟢 GÜNLÜK GETİRİ: POZİTİF
 
@@ -41,7 +41,7 @@ Yatırımcı Sayısı: 47.029
 Portföy Büyüklüğü: 39,37 Milyar ₺
 ```
 
-### Negative Session (Alert)
+### Negative session
 ```text
 🔴 GÜNLÜK GETİRİ: NEGATİF
 
@@ -58,127 +58,121 @@ Portföy Büyüklüğü: 39,00 Milyar ₺
 
 ---
 
-## Step-by-Step Setup Guide
+## Setup
 
-Setting up your personal bot takes less than 3 minutes.
-
-### 1. Create Your Telegram Bot
+### 1. Create a Telegram bot
 
 1. Open Telegram and search for [@BotFather](https://t.me/BotFather).
-2. Send `/newbot` and follow the instructions:
-   - Provide a display name (e.g. `My Fund Tracker`).
-   - Provide a unique username ending in `bot` (e.g. `my_tefas_tracker_bot`).
-3. BotFather will provide your **HTTP API Token** (e.g. `7123456789:AAH...`). Copy this token.
-4. Open your newly created bot in Telegram and click **Start** (or send `/start`).
+2. Send `/newbot` and follow the prompts to choose a display name and username. The username must end in `bot` or `_bot`.
+3. Copy the HTTP API token BotFather gives you.
+4. Open the chat with your new bot and click **Start** (or send `/start`). Telegram bots cannot send you messages until you start the conversation.
 
-### 2. Get Your Telegram Chat ID
+### 2. Find your Chat ID
 
 1. Open Telegram and search for [@userinfobot](https://t.me/userinfobot).
 2. Click **Start** or send any message.
-3. The bot will respond with your personal numerical **Id** (e.g. `123456789`). Copy this number.
+3. Note the numerical `Id` in the reply.
 
-### 3. Fork and Configure GitHub Secrets
+### 3. Add GitHub repository secrets
 
-1. Fork this repository to your personal GitHub account.
-2. In your forked repository, navigate to **Settings** &rarr; **Secrets and variables** &rarr; **Actions**.
+1. Fork this repository.
+2. In your fork, go to **Settings** > **Secrets and variables** > **Actions**.
 3. Under **Repository secrets**, click **New repository secret** and add:
 
 | Secret Name | Value | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `TELEGRAM_BOT_TOKEN` | `7123456789:AAH...` | Yes | Token received from `@BotFather` |
-| `TELEGRAM_CHAT_ID` | `123456789` | Yes | Numerical ID received from `@userinfobot` |
+| `TELEGRAM_BOT_TOKEN` | `...` | Yes | Token from `@BotFather` |
+| `TELEGRAM_CHAT_ID` | `...` | Yes | Numerical ID from `@userinfobot` |
 
-4. *(Optional)* Under **Variables** (or Secrets), configure optional parameters:
+4. Optional repository variables can be added under the **Variables** tab:
 
 | Variable Name | Default | Example | Description |
 | :--- | :--- | :--- | :--- |
-| `FUND_CODE` | `KTV` | `KTV,TI1,MAC` | Comma-separated TEFAS fund codes |
-| `ALERT_NEGATIVE_ONLY` | `false` | `true` | When `true`, only notifies on negative returns |
+| `FUND_CODE` | `KTV` | `KTV,TI1,MAC` | Comma-separated fund codes |
+| `ALERT_NEGATIVE_ONLY` | `false` | `true` | Send notifications only on negative days |
 
-### 4. Run First Test (Manual Trigger)
+### 4. Test run
 
-1. In your repository, go to the **Actions** tab.
-2. Select **Daily TEFAS Fund Alert** from the left sidebar.
-3. Click **Run workflow** &rarr; **Run workflow**.
-4. Check your Telegram: your fund notification will arrive in seconds!
+1. Go to the **Actions** tab in your repository.
+2. Select **Daily TEFAS Fund Alert** in the left sidebar.
+3. Click **Run workflow** > **Run workflow**.
+4. Check your Telegram chat for the notification.
 
 ---
 
-## Customizing Alert Schedule & Funds
+## Changing schedule and funds
 
-### Option A: Interactive Setup Wizard (Fastest)
+### Option A: Setup wizard
 
-Run the built-in wizard to pick your desired delivery time and funds:
+Clone the repository and run the setup script:
 
 ```bash
 python3 configure.py
 ```
 
-The wizard prompts you for your preferred Istanbul time (e.g. `10:00` for stock market open, `09:15` for debt securities/money market, or any custom time), automatically converts it to GitHub Actions UTC cron, updates `.github/workflows/daily_alert.yml`, and offers to commit and push changes.
+The script asks for your target funds and delivery time (such as `10:00` for stock market open, `09:15` for money market/debt funds, or a custom hour). It updates `.github/workflows/daily_alert.yml` with the correct UTC cron and can commit the change directly.
 
-### Option B: Manual Workflow Edit
+### Option B: Manual workflow edit
 
-Edit `.github/workflows/daily_alert.yml` directly on GitHub:
+You can also change the schedule by editing line 6 of `.github/workflows/daily_alert.yml`:
 
 ```yaml
 on:
   schedule:
-    # 09:15 TSI (06:15 UTC) -> Kira sertifikası & para piyasası fonları
-    - cron: '15 6 * * 1-5'
+    # 10:00 TSI (07:00 UTC) - BIST and equity funds
+    - cron: '0 7 * * 1-5'
 
-    # 10:00 TSI (07:00 UTC) -> BIST & hisse senedi fonları
-    # - cron: '0 7 * * 1-5'
+    # 09:15 TSI (06:15 UTC) - Money market and lease certificate funds
+    # - cron: '15 6 * * 1-5'
 
-    # 10:30 TSI (07:30 UTC) -> Tüm fonların kesinleştiği saat
+    # 10:30 TSI (07:30 UTC) - After all fund prices settle
     # - cron: '30 7 * * 1-5'
 ```
 
 ---
 
-## Configuration Reference
+## Configuration reference
 
 | Environment Variable | Default | Allowed Values | Description |
 | :--- | :--- | :--- | :--- |
-| `FUND_CODE` | `KTV` | String (e.g. `KTV`, `TI1,ZKP`) | Target TEFAS fund code(s). Comma-separated for batch tracking. |
-| `TELEGRAM_BOT_TOKEN` | None | String | Secret bot token issued by Telegram BotFather. |
-| `TELEGRAM_CHAT_ID` | None | String / Int | Personal or channel/group chat ID. |
-| `ALERT_NEGATIVE_ONLY` | `false` | `true` / `false` | If enabled, skips Telegram message when return is positive or zero. |
-| `DRY_RUN` | `false` | `true` / `false` | Prints output to console without making Telegram API calls. |
+| `FUND_CODE` | `KTV` | String (e.g. `KTV`, `TI1,ZKP`) | Target TEFAS fund code. Supports comma-separated lists. |
+| `TELEGRAM_BOT_TOKEN` | None | String | Bot token from Telegram BotFather. |
+| `TELEGRAM_CHAT_ID` | None | String / Int | Personal or channel chat ID. |
+| `ALERT_NEGATIVE_ONLY` | `false` | `true` / `false` | When true, skips messages on positive or neutral days. |
+| `DRY_RUN` | `false` | `true` / `false` | Prints output to stdout without calling the Telegram API. |
 
 ---
 
-## Local Execution & Development
+## Local development
 
-Run directly on your local workstation without installing third-party packages:
+Run locally without third-party packages:
 
 ```bash
-# Clone the repository
 git clone https://github.com/SS2Genji/tefas-telegram-alert.git
 cd tefas-telegram-alert
 
-# Test in dry-run mode (no Telegram credentials required)
+# Test with console output only
 DRY_RUN=true FUND_CODE=KTV python3 tefas_alert.py
 
-# Run unit test suite
+# Run unit tests
 python3 test_alert.py
 ```
 
 ---
 
+## FAQ
 
-## FAQ & Market Hours
+### When do TEFAS prices update?
+Most fund prices are posted between 08:30 and 09:30 Istanbul time. Equity funds usually settle closer to 10:00. The default schedule runs at 10:00 TSI (07:00 UTC) on weekdays.
 
-### When are TEFAS prices updated?
-TEFAS publishes fund clearing prices once per business day, usually between 08:30 and 09:15 Istanbul Time (TSI). The automated GitHub Actions workflow is scheduled for **09:15 TSI (06:15 UTC)** to ensure prices have cleared.
+### What happens on weekends and holidays?
+Markets are closed on weekends and Turkish national holidays. When prices are unchanged, the script marks the session as neutral (`⚪`) and will not trigger a negative alert.
 
-### What happens on weekends and official holidays?
-Trading sessions do not occur on weekends or Turkish national holidays. When TEFAS returns unchanged prices, the system reports the session as neutral (`⚪`) and will not trigger false negative alerts.
-
-### Can I send notifications to a Telegram Channel or Group?
-Yes. Add your bot to the group or channel as an Administrator, obtain the group/channel Chat ID (typically starting with a minus `-100...`), and set `TELEGRAM_CHAT_ID` accordingly.
+### Can notifications be sent to a channel or group?
+Yes. Add the bot to the group or channel, make sure it has permission to post, and use the group chat ID (which usually begins with `-100`).
 
 ---
 
 ## License
 
-MIT License. Free for personal and commercial use.
+MIT
