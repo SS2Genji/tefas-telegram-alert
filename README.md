@@ -165,12 +165,6 @@ python3 test_alert.py
 
 ---
 
-## Architecture & Design Principles
-
-- **Standard Library First (`/ponytail`):** Many open-source trackers depend on heavyweight packages (`pandas`, `requests`, `python-telegram-bot`, `bs4`) totaling 100MB+ in disk and minutes of installation time. This project relies entirely on Python's native `urllib`, `json`, and `datetime`, executing from start to finish in less than 2 seconds.
-- **Determinist Computing over LLM Overhead:** Daily return verification is an exact mathematical check: `P_curr - P_prev`. Routing this through a cloud LLM (like Gemini Spark) introduces unnecessary latency, costs, and failure modes. Simple, direct code delivers 100% reliability.
-
----
 
 ## FAQ & Market Hours
 
