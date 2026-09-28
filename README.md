@@ -30,30 +30,30 @@ When daily returns are positive, it sends a green status notification. When retu
 ```text
 🟢 GÜNLÜK GETİRİ: POZİTİF
 
-📊 Fon: KTV - KUVEYT TÜRK PORTFÖY KISA VADELİ KİRA SERTİFİKALARI KATILIM (TL) FONU
-📅 Tarih: 2026-09-28 (Önceki seans: 2026-09-25)
+Fon: KTV - KUVEYT TÜRK PORTFÖY KISA VADELİ KİRA SERTİFİKALARI KATILIM (TL) FONU
+Tarih: 2026-09-28 (Önceki seans: 2026-09-25)
 
-💰 Güncel Fiyat: 7,973047 ₺
-📈 Günlük Fark: +0,022285 ₺
-⚡ Getiri Oranı: +0.2803%
+Güncel Fiyat: 7,973047 ₺
+Günlük Fark: +0,022285 ₺
+Getiri Oranı: +0.28%
 
-👥 Yatırımcı Sayısı: 47.029
-💼 Portföy Büyüklüğü: 39.372.503.366,19 ₺
+Yatırımcı Sayısı: 47.029
+Portföy Büyüklüğü: 39,37 Milyar ₺
 ```
 
 ### Negative Session (Alert)
 ```text
-🚨 DİKKAT: NEGATİF GETİRİ!
+🔴 GÜNLÜK GETİRİ: NEGATİF
 
-📊 Fon: KTV - KUVEYT TÜRK PORTFÖY KISA VADELİ KİRA SERTİFİKALARI KATILIM (TL) FONU
-📅 Tarih: 2026-09-28 (Önceki seans: 2026-09-25)
+Fon: KTV - KUVEYT TÜRK PORTFÖY KISA VADELİ KİRA SERTİFİKALARI KATILIM (TL) FONU
+Tarih: 2026-09-28 (Önceki seans: 2026-09-25)
 
-💰 Güncel Fiyat: 7,940000 ₺
-📈 Günlük Fark: -0,010762 ₺
-⚡ Getiri Oranı: -0.1354%
+Güncel Fiyat: 7,940000 ₺
+Günlük Fark: -0,010762 ₺
+Getiri Oranı: -0.14%
 
-👥 Yatırımcı Sayısı: 47.000
-💼 Portföy Büyüklüğü: 39.000.000.000,00 ₺
+Yatırımcı Sayısı: 47.000
+Portföy Büyüklüğü: 39,00 Milyar ₺
 ```
 
 ---
@@ -101,6 +101,37 @@ Setting up your personal bot takes less than 3 minutes.
 2. Select **Daily TEFAS Fund Alert** from the left sidebar.
 3. Click **Run workflow** &rarr; **Run workflow**.
 4. Check your Telegram: your fund notification will arrive in seconds!
+
+---
+
+## Customizing Alert Schedule & Funds
+
+### Option A: Interactive Setup Wizard (Fastest)
+
+Run the built-in wizard to pick your desired delivery time and funds:
+
+```bash
+python3 configure.py
+```
+
+The wizard prompts you for your preferred Istanbul time (e.g. `10:00` for stock market open, `09:15` for debt securities/money market, or any custom time), automatically converts it to GitHub Actions UTC cron, updates `.github/workflows/daily_alert.yml`, and offers to commit and push changes.
+
+### Option B: Manual Workflow Edit
+
+Edit `.github/workflows/daily_alert.yml` directly on GitHub:
+
+```yaml
+on:
+  schedule:
+    # 09:15 TSI (06:15 UTC) -> Kira sertifikası & para piyasası fonları
+    - cron: '15 6 * * 1-5'
+
+    # 10:00 TSI (07:00 UTC) -> BIST & hisse senedi fonları
+    # - cron: '0 7 * * 1-5'
+
+    # 10:30 TSI (07:30 UTC) -> Tüm fonların kesinleştiği saat
+    # - cron: '30 7 * * 1-5'
+```
 
 ---
 

@@ -134,12 +134,30 @@ def format_currency_tr(val: Optional[float], decimals: int = 2) -> str:
     if val is None:
         return "N/A"
     formatted = f"{val:,.{decimals}f}"
-    # Swap commas and periods for Turkish convention: 1,234.56 -> 1.234,56
     return formatted.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def format_compact_currency_tr(val: Optional[float]) -> str:
+    """Format large currency values into compact readable units: 39,37 Milyar ₺, 45,50 Milyon ₺, etc."""
+    if val is None:
+        return "N/A"
+    abs_val = abs(val)
+    if abs_val >= 1_000_000_000:
+        num_str = f"{val / 1_000_000_000:.2f}".replace(".", ",")
+        return f"{num_str} Milyar ₺"
+    elif abs_val >= 1_000_000:
+        num_str = f"{val / 1_000_000:.2f}".replace(".", ",")
+        return f"{num_str} Milyon ₺"
+    elif abs_val >= 1_000:
+        num_str = f"{val / 1_000:.2f}".replace(".", ",")
+        return f"{num_str} Bin ₺"
+    else:
+        num_str = f"{val:.2f}".replace(".", ",")
+        return f"{num_str} ₺"
+
+
 def format_telegram_message(metrics: Dict[str, Any]) -> str:
-    """Format metrics into a clear, beautiful HTML Telegram alert message."""
+    """Format metrics into a clean, minimal HTML Telegram alert message."""
     pct = metrics["pct_change"]
     diff = metrics["diff"]
 
@@ -147,7 +165,7 @@ def format_telegram_message(metrics: Dict[str, Any]) -> str:
         header = "🟢 <b>GÜNLÜK GETİRİ: POZİTİF</b>"
         pct_sign = "+"
     elif pct < 0:
-        header = "🚨 <b>DİKKAT: NEGATİF GETİRİ!</b>"
+        header = "🔴 <b>GÜNLÜK GETİRİ: NEGATİF</b>"
         pct_sign = ""
     else:
         header = "⚪ <b>GÜNLÜK GETİRİ: DEĞİŞİM YOK (NÖTR)</b>"
@@ -159,28 +177,24 @@ def format_telegram_message(metrics: Dict[str, Any]) -> str:
     date_prev = metrics["date_prev"]
     price_curr = format_currency_tr(metrics["price_curr"], decimals=6)
     diff_str = f"{pct_sign}{format_currency_tr(diff, decimals=6)}"
-    pct_str = f"{pct_sign}{pct:.4f}%"
+    pct_str = f"{pct_sign}{pct:.2f}%"
 
     investors_str = (
         f"{metrics['investors']:,}".replace(",", ".")
         if metrics.get("investors") is not None
         else "N/A"
     )
-    portfolio_str = (
-        f"{format_currency_tr(metrics['portfolio_size'], decimals=2)} ₺"
-        if metrics.get("portfolio_size") is not None
-        else "N/A"
-    )
+    portfolio_str = format_compact_currency_tr(metrics.get("portfolio_size"))
 
     return (
         f"{header}\n\n"
-        f"📊 <b>Fon:</b> <code>{fund_code}</code> - {fund_name}\n"
-        f"📅 <b>Tarih:</b> {date_curr} <i>(Önceki seans: {date_prev})</i>\n\n"
-        f"💰 <b>Güncel Fiyat:</b> <code>{price_curr} ₺</code>\n"
-        f"📈 <b>Günlük Fark:</b> <code>{diff_str} ₺</code>\n"
-        f"⚡ <b>Getiri Oranı:</b> <b>{pct_str}</b>\n\n"
-        f"👥 <b>Yatırımcı Sayısı:</b> {investors_str}\n"
-        f"💼 <b>Portföy Büyüklüğü:</b> {portfolio_str}"
+        f"<b>Fon:</b> <code>{fund_code}</code> - {fund_name}\n"
+        f"<b>Tarih:</b> {date_curr} <i>(Önceki seans: {date_prev})</i>\n\n"
+        f"<b>Güncel Fiyat:</b> <code>{price_curr} ₺</code>\n"
+        f"<b>Günlük Fark:</b> <code>{diff_str} ₺</code>\n"
+        f"<b>Getiri Oranı:</b> <b>{pct_str}</b>\n\n"
+        f"<b>Yatırımcı Sayısı:</b> {investors_str}\n"
+        f"<b>Portföy Büyüklüğü:</b> {portfolio_str}"
     )
 
 

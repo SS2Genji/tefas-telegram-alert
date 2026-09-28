@@ -77,18 +77,30 @@ class TestTefasAlert(unittest.TestCase):
         self.assertEqual(format_currency_tr(7.973047, decimals=6), "7,973047")
         self.assertEqual(format_currency_tr(None), "N/A")
 
+    def test_format_compact_currency_tr(self):
+        from tefas_alert import format_compact_currency_tr
+        self.assertEqual(format_compact_currency_tr(39372503366.19), "39,37 Milyar ₺")
+        self.assertEqual(format_compact_currency_tr(45500000.0), "45,50 Milyon ₺")
+        self.assertEqual(format_compact_currency_tr(250000.0), "250,00 Bin ₺")
+        self.assertEqual(format_compact_currency_tr(500.25), "500,25 ₺")
+        self.assertEqual(format_compact_currency_tr(None), "N/A")
+
     def test_format_message_positive(self):
         metrics = calculate_return(self.mock_positive_records)
         msg = format_telegram_message(metrics)
         self.assertIn("🟢 <b>GÜNLÜK GETİRİ: POZİTİF</b>", msg)
         self.assertIn("<code>KTV</code>", msg)
-        self.assertIn("+0.2803%", msg)
+        self.assertIn("+0.28%", msg)
+        self.assertIn("39,00 Milyar ₺", msg)
+        for emoji in ("📊", "📅", "💰", "📈", "⚡", "👥", "💼", "🚨"):
+            self.assertNotIn(emoji, msg)
 
     def test_format_message_negative(self):
         metrics = calculate_return(self.mock_negative_records)
         msg = format_telegram_message(metrics)
-        self.assertIn("🚨 <b>DİKKAT: NEGATİF GETİRİ!</b>", msg)
-        self.assertIn("-0.1258%", msg)
+        self.assertIn("🔴 <b>GÜNLÜK GETİRİ: NEGATİF</b>", msg)
+        self.assertIn("-0.13%", msg)
+        self.assertNotIn("🚨", msg)
 
     @patch("urllib.request.urlopen")
     def test_send_telegram_success(self, mock_urlopen):
@@ -98,6 +110,19 @@ class TestTefasAlert(unittest.TestCase):
 
         success = send_telegram_message("test_token", "123456", "Test message")
         self.assertTrue(success)
+
+    def test_tsi_to_utc_cron(self):
+        from configure import tsi_to_utc_cron
+        cron, h, m = tsi_to_utc_cron("10:00")
+        self.assertEqual(cron, "0 7 * * 1-5")
+        self.assertEqual(h, 10)
+        self.assertEqual(m, 0)
+
+        cron, h, m = tsi_to_utc_cron("09:15")
+        self.assertEqual(cron, "15 6 * * 1-5")
+
+        cron, h, m = tsi_to_utc_cron("18:30")
+        self.assertEqual(cron, "30 15 * * 1-5")
 
 
 if __name__ == "__main__":
