@@ -1,0 +1,13 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and local credentials
+.env
+.env.local
+*.secret
+
+# OS artifacts
+.DS_Store
+Thumbs.db

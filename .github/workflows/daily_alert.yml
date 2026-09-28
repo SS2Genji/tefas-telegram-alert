@@ -1,0 +1,32 @@
+name: Daily TEFAS Fund Alert
+
+on:
+  schedule:
+    # Runs Monday through Friday at 06:15 UTC (09:15 Istanbul Time / TSI)
+    - cron: '15 6 * * 1-5'
+  workflow_dispatch:
+    # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  check-and-alert:
+    name: Check TEFAS & Send Telegram Alert
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Alert Engine
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FUND_CODE: ${{ vars.FUND_CODE || 'KTV' }}
+          ALERT_NEGATIVE_ONLY: ${{ vars.ALERT_NEGATIVE_ONLY || 'false' }}
+        run: |
+          python3 tefas_alert.py
